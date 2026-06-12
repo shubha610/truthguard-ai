@@ -12,6 +12,7 @@ from nltk.corpus import stopwords
 # ---------------------------
 nltk_data_path = "/tmp/nltk_data"
 os.makedirs(nltk_data_path, exist_ok=True)
+
 nltk.data.path.append(nltk_data_path)
 nltk.download('stopwords', download_dir=nltk_data_path, quiet=True)
 
@@ -28,6 +29,7 @@ with open("model/vectorizer.pkl", "rb") as vectorizer_file:
 
 # ---------------------------
 # TEXT CLEANING FUNCTION
+# (IMPORTANT: keep SAME as training)
 # ---------------------------
 def clean_text(text):
     text = text.lower()
@@ -44,28 +46,38 @@ def clean_text(text):
     return " ".join(words)
 
 # ---------------------------
-# STREAMLIT UI
+# UI
 # ---------------------------
 st.title("📰 Fake News Detection System")
-st.write("Enter a news article below and check whether it is REAL or FAKE.")
+st.write("Enter a news article and get prediction with confidence score.")
 
-user_input = st.text_area("Enter News Text")
+text = st.text_area("Enter News Text")
 
 if st.button("Predict"):
-    if user_input.strip() == "":
+    if text.strip() == "":
         st.warning("Please enter some text")
     else:
+
         # preprocess
-        cleaned_text = clean_text(user_input)
+        cleaned = clean_text(text)
 
         # vectorize
-        vector_input = vectorizer.transform([cleaned_text])
+        vector_input = vectorizer.transform([cleaned])
 
-        # predict
+        # prediction
         prediction = model.predict(vector_input)
 
-        # output
+        # confidence (IMPORTANT PART)
+        prob = model.predict_proba(vector_input)
+
+        confidence = max(prob[0]) * 100
+
+        # label mapping (based on your training)
+        # 1 = FAKE, 0 = REAL
+
         if prediction[0] == 1:
-            st.error("🚨 FAKE NEWS")
+            st.error(f"🚨 FAKE NEWS")
+            st.write(f"Confidence: {confidence:.2f}%")
         else:
-            st.success("✅ REAL NEWS")
+            st.success(f"✅ REAL NEWS")
+            st.write(f"Confidence: {confidence:.2f}%")
