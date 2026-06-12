@@ -3,12 +3,18 @@ import streamlit as st
 import pickle
 import re
 import string
-import nltk
 
 from nltk.corpus import stopwords
 
 # Download stopwords
-nltk.download('stopwords')
+import nltk
+import os
+
+nltk_data_path = "/tmp/nltk_data"
+os.makedirs(nltk_data_path, exist_ok=True)
+
+nltk.data.path.append(nltk_data_path)
+nltk.download('stopwords', download_dir=nltk_data_path, quiet=True)
 
 # Load saved model
 with open("model/model.pkl", "rb") as model_file:
